@@ -1,0 +1,13 @@
+const ROLES = {
+  CLIENT: 'CLIENT',
+  VISUALIZATION_ARTIST: 'VISUALIZATION_ARTIST',
+  PROJECT_MANAGER: 'PROJECT_MANAGER',
+  ADMIN: 'ADMIN'
+};
+
+const ALL_ROLES = Object.values(ROLES);
+
+module.exports = {
+  ROLES,
+  ALL_ROLES
+};

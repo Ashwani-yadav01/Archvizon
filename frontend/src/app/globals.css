@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+  }
+
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased selection:bg-sky-500 selection:text-white min-h-screen font-sans;
+  }
+}
+
+/* Custom architectural glass & elevation styles */
+.arch-card {
+  @apply bg-slate-900/70 border border-slate-800/80 rounded-xl backdrop-blur-sm shadow-xl transition-all duration-200;
+}
+
+.arch-card:hover {
+  @apply border-slate-700/80 shadow-2xl;
+}
+
+.arch-input {
+  @apply w-full bg-slate-900/90 border border-slate-800 rounded-lg px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-colors;
+}
+
+.arch-button-primary {
+  @apply inline-flex items-center justify-center font-medium rounded-lg px-5 py-2.5 text-sm bg-sky-600 text-white hover:bg-sky-500 active:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-sky-500/20;
+}
+
+.arch-button-secondary {
+  @apply inline-flex items-center justify-center font-medium rounded-lg px-5 py-2.5 text-sm bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white active:bg-slate-800/90 border border-slate-700/60 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-950 transition-all disabled:opacity-50 disabled:cursor-not-allowed;
+}
