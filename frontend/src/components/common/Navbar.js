@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import StatusBadge from './StatusBadge';
+import NotificationBell from '../notifications/NotificationBell';
 import { Layers, LogOut, User as UserIcon, LayoutDashboard } from 'lucide-react';
 
 export default function Navbar() {
@@ -39,6 +40,8 @@ export default function Navbar() {
                 </Link>
 
                 <div className="h-4 w-px bg-slate-800" />
+
+                <NotificationBell />
 
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 text-xs font-semibold">

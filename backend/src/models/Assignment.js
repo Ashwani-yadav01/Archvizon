@@ -43,6 +43,8 @@ const assignmentSchema = new mongoose.Schema(
   }
 );
 
+assignmentSchema.index({ projectId: 1, assignedTo: 1, serviceRequestId: 1 }, { unique: true });
+
 const Assignment = mongoose.model('Assignment', assignmentSchema);
 
 module.exports = Assignment;

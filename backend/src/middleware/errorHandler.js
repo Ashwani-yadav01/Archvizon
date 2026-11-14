@@ -40,6 +40,16 @@ const errorHandler = (err, req, res, next) => {
     message = 'Authentication token has expired';
   }
 
+  // Multer upload errors
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = `File exceeds maximum allowed size of ${config.maxUploadSizeMb}MB`;
+    } else {
+      message = `Upload error: ${err.message}`;
+    }
+  }
+
   if (config.env !== 'test' && statusCode === 500) {
     console.error('[Unhandled Error]', err);
   }

@@ -29,4 +29,8 @@ Thumbs.db
 # Testing
 coverage/
 
+# Uploads
+backend/uploads/
+uploads/
+
 AGENTS.md

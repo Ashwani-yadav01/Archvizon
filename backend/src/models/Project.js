@@ -36,6 +36,12 @@ const projectSchema = new mongoose.Schema(
       required: [true, 'Client ID is required'],
       index: true
     },
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Organization',
+      default: null,
+      index: true
+    },
     status: {
       type: String,
       enum: ALL_STATUSES,
@@ -44,6 +50,14 @@ const projectSchema = new mongoose.Schema(
     },
     deadline: {
       type: Date
+    },
+    clarificationRequest: {
+      message: { type: String, default: '' },
+      requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      requestedAt: { type: Date },
+      response: { type: String, default: '' },
+      resolvedAt: { type: Date },
+      resolved: { type: Boolean, default: false }
     },
     metadata: {
       type: Map,

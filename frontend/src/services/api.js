@@ -69,6 +69,14 @@ class ApiClient {
     });
   }
 
+  put(endpoint, body, options = {}) {
+    return this.request(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+      ...options
+    });
+  }
+
   patch(endpoint, body, options = {}) {
     return this.request(endpoint, {
       method: 'PATCH',
@@ -79,6 +87,32 @@ class ApiClient {
 
   delete(endpoint, options = {}) {
     return this.request(endpoint, { method: 'DELETE', ...options });
+  }
+
+  async upload(endpoint, formData) {
+    const url = `${this.baseUrl}${endpoint}`;
+    const token = this.getToken();
+
+    const headers = {
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      const error = new Error(data.message || `Upload failed with status ${response.status}`);
+      error.status = response.status;
+      error.errors = data.errors || [];
+      throw error;
+    }
+
+    return data;
   }
 }
 

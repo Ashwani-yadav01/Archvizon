@@ -27,6 +27,12 @@ const deliverableSchema = new mongoose.Schema(
       required: true,
       default: 1
     },
+    parentDeliverableId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Deliverable',
+      default: null,
+      index: true
+    },
     title: {
       type: String,
       trim: true,
@@ -35,6 +41,20 @@ const deliverableSchema = new mongoose.Schema(
     notes: {
       type: String,
       default: ''
+    },
+    hostedTourUrl: {
+      type: String,
+      trim: true,
+      default: ''
+    },
+    originalAssetId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Asset',
+      default: null
+    },
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {}
     },
     uploadedBy: {
       type: mongoose.Schema.Types.ObjectId,

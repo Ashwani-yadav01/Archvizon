@@ -9,7 +9,9 @@ const config = {
   mongoUri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/archvizon',
   jwtSecret: process.env.JWT_SECRET || 'archvizon_jwt_super_secret_development_key_change_in_production',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
-  clientUrl: process.env.CLIENT_URL || 'http://localhost:3000'
+  clientUrl: process.env.CLIENT_URL || 'http://localhost:3000',
+  uploadDir: process.env.UPLOAD_DIR || path.resolve(__dirname, '../../uploads'),
+  maxUploadSizeMb: parseInt(process.env.MAX_UPLOAD_SIZE_MB || '50', 10)
 };
 
 if (config.env === 'production' && (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes('super_secret'))) {
