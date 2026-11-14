@@ -6,8 +6,9 @@ const { ROLES } = require('../constants/roles');
 
 async function seedDatabase() {
   try {
-    console.log('Connecting to MongoDB at:', config.mongodbUri);
-    await mongoose.connect(config.mongodbUri);
+    const mongoUri = config.mongoUri || config.mongodbUri || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/archvizon';
+    console.log('Connecting to MongoDB at:', mongoUri);
+    await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB successfully.');
 
     const defaultPassword = 'Password123!';

@@ -40,6 +40,26 @@ JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:3000
 ```
 
+#### Database Startup & Seeding
+
+Archvizon uses MongoDB on `mongodb://127.0.0.1:27017/archvizon` (or MongoDB Atlas).
+
+- **Via Docker Compose (Recommended):**
+  ```bash
+  docker compose up -d
+  ```
+  *(Starts MongoDB on port `27017` with persistent storage and Mongo Express web GUI on `http://localhost:8081`)*
+- **Via Local Windows Service:**
+  ```powershell
+  net start MongoDB
+  ```
+- **Seed Demo Accounts:**
+  ```bash
+  cd backend
+  npm run seed
+  ```
+  *(Creates default accounts: `admin@archvizon.com`, `pm@archvizon.com`, `artist@archvizon.com`, `client@developer.com` with password `Password123!`)*
+
 #### Running Backend Tests
 ```bash
 cd backend
