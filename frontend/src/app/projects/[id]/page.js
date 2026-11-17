@@ -25,8 +25,10 @@ import {
   Users,
   Sparkles,
   Box,
+  Compass,
   MessageSquare,
-  RefreshCw
+  RefreshCw,
+  ArrowRight
 } from 'lucide-react';
 import StatusBadge from '../../../components/common/StatusBadge';
 import TeamAssignmentPanel from '../../../components/projects/TeamAssignmentPanel';
@@ -35,6 +37,9 @@ import ClarificationBanner from '../../../components/projects/ClarificationBanne
 import DeliverablePanel from '../../../components/deliverables/DeliverablePanel';
 import FeedbackCommentsSection from '../../../components/comments/FeedbackCommentsSection';
 import RevisionTimeline from '../../../components/revisions/RevisionTimeline';
+import VirtualStagingStudio from '../../../components/staging/VirtualStagingStudio';
+import RenderStudio from '../../../components/rendering/RenderStudio';
+import WalkthroughMode from '../../../components/walkthrough/WalkthroughMode';
 import projectService from '../../../services/projectService';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -288,6 +293,69 @@ export default function ProjectDetailsPage() {
               <p className="text-slate-200 font-medium mt-0.5">{project.clientId?.name || 'You'}</p>
             </div>
           </div>
+
+          {/* 3D Platform Workspaces Launcher */}
+          <div className="pt-4 border-t border-slate-800/80 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <Link
+              href={`/projects/${project._id}/editor`}
+              className="p-3 rounded-xl bg-sky-950/60 hover:bg-sky-600/30 border border-sky-800/80 hover:border-sky-500 text-left transition group"
+            >
+              <div className="flex items-center justify-between text-sky-400 mb-1.5">
+                <Box className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <p className="text-xs font-semibold text-white">3D Modeling Editor</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Blender-style 3D viewport</p>
+            </Link>
+
+            <button
+              onClick={() => setActiveTab('STAGING')}
+              className={`p-3 rounded-xl border text-left transition group ${
+                activeTab === 'STAGING'
+                  ? 'bg-amber-950/80 border-amber-500 ring-1 ring-amber-500'
+                  : 'bg-amber-950/40 hover:bg-amber-950/70 border-amber-800/60'
+              }`}
+            >
+              <div className="flex items-center justify-between text-amber-400 mb-1.5">
+                <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <p className="text-xs font-semibold text-white">Virtual Staging</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Furnish room photographs</p>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('RENDER')}
+              className={`p-3 rounded-xl border text-left transition group ${
+                activeTab === 'RENDER'
+                  ? 'bg-indigo-950/80 border-indigo-500 ring-1 ring-indigo-500'
+                  : 'bg-slate-900/60 hover:bg-slate-800 border-slate-700/80'
+              }`}
+            >
+              <div className="flex items-center justify-between text-indigo-400 mb-1.5">
+                <Camera className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <p className="text-xs font-semibold text-white">Render Studio</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">4K & 8K image output</p>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('WALKTHROUGH')}
+              className={`p-3 rounded-xl border text-left transition group ${
+                activeTab === 'WALKTHROUGH'
+                  ? 'bg-emerald-950/80 border-emerald-500 ring-1 ring-emerald-500'
+                  : 'bg-emerald-950/30 hover:bg-emerald-950/60 border-emerald-800/60'
+              }`}
+            >
+              <div className="flex items-center justify-between text-emerald-400 mb-1.5">
+                <Compass className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <p className="text-xs font-semibold text-white">3D Walkthrough</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">First-person spatial tour</p>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -337,6 +405,42 @@ export default function ProjectDetailsPage() {
 
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-slate-800 text-xs overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('STAGING')}
+          className={`pb-3 px-3 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'STAGING'
+              ? 'border-amber-500 text-amber-400 font-semibold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-amber-400" />
+          <span>Virtual Staging</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('RENDER')}
+          className={`pb-3 px-3 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'RENDER'
+              ? 'border-indigo-500 text-indigo-400 font-semibold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Camera className="w-4 h-4 text-indigo-400" />
+          <span>Render Studio</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('WALKTHROUGH')}
+          className={`pb-3 px-3 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'WALKTHROUGH'
+              ? 'border-emerald-500 text-emerald-400 font-semibold'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Compass className="w-4 h-4 text-emerald-400" />
+          <span>3D Walkthrough</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('BRIEF')}
           className={`pb-3 px-3 font-medium transition-colors border-b-2 flex items-center gap-2 whitespace-nowrap ${
@@ -421,6 +525,38 @@ export default function ProjectDetailsPage() {
           <span>Activity Timeline ({recentActivity.length})</span>
         </button>
       </div>
+
+      {/* 3D WORKSPACE PANES */}
+      {activeTab === 'STAGING' && (
+        <VirtualStagingStudio projectId={project._id} />
+      )}
+
+      {activeTab === 'RENDER' && (
+        <RenderStudio projectId={project._id} />
+      )}
+
+      {activeTab === 'WALKTHROUGH' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <span className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-base">🧭</span>
+                3D Virtual Walkthrough Tour
+              </h2>
+              <p className="text-xs text-neutral-400 mt-1">
+                Explore your interior design and architectural space with first-person WASD navigation and mouse look.
+              </p>
+            </div>
+            <Link
+              href={`/projects/${project._id}/editor`}
+              className="px-3.5 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold rounded-lg border border-neutral-700 flex items-center gap-1.5 transition-colors"
+            >
+              <span>✏️</span> Open in 3D Modeling Editor
+            </Link>
+          </div>
+          <WalkthroughMode projectId={project._id} onExit={() => setActiveTab('BRIEF')} />
+        </div>
+      )}
 
       {/* TAB 1: BRIEF & SPECIFICATIONS */}
       {activeTab === 'BRIEF' && (

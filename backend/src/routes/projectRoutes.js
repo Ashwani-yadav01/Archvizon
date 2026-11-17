@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const projectController = require('../controllers/projectController');
+const sceneController = require('../controllers/sceneController');
 const serviceRequestController = require('../controllers/serviceRequestController');
 const assetController = require('../controllers/assetController');
 const assignmentController = require('../controllers/assignmentController');
@@ -35,6 +36,11 @@ router
 
 // Submit project workflow
 router.post('/:id/submit', projectController.submitProject);
+router.post('/:id/duplicate', projectController.duplicateProject);
+router.patch('/:id/thumbnail', projectController.updateThumbnail);
+
+// 3D Scene Route
+router.get('/:projectId/scene', sceneController.getSceneByProject);
 
 // Status transition & clarification workflow
 router.patch('/:id/status', projectController.updateProjectStatus);

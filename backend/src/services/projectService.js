@@ -598,6 +598,79 @@ class ProjectService {
 
     return true;
   }
+
+  /**
+   * Duplicate a project
+   */
+  async duplicateProject(user, projectId) {
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      const error = new Error('Invalid project ID format');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const original = await Project.findById(projectId);
+    if (!original) {
+      const error = new Error('Project not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const isOwner = original.clientId.toString() === (user._id || user.id).toString();
+    const isStaff = [ROLES.PROJECT_MANAGER, ROLES.ADMIN].includes(user.role);
+    if (!isOwner && !isStaff) {
+      const error = new Error('Access denied: You do not have permission to duplicate this project');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const duplicated = new Project({
+      name: `${original.name} (Copy)`,
+      description: original.description,
+      propertyType: original.propertyType,
+      location: original.location,
+      clientId: user._id || user.id,
+      organizationId: original.organizationId,
+      status: PROJECT_STATUSES.DRAFT,
+      thumbnailUrl: original.thumbnailUrl || '',
+      metadata: original.metadata || {}
+    });
+
+    await duplicated.save();
+
+    await ActivityLog.create({
+      actorId: user._id || user.id,
+      projectId: duplicated._id,
+      action: 'PROJECT_DUPLICATED',
+      entityType: 'PROJECT',
+      entityId: duplicated._id,
+      metadata: { originalProjectId: original._id, originalName: original.name }
+    });
+
+    return { project: duplicated };
+  }
+
+  /**
+   * Update project thumbnail
+   */
+  async updateThumbnail(user, projectId, thumbnailUrl) {
+    if (!mongoose.Types.ObjectId.isValid(projectId)) {
+      const error = new Error('Invalid project ID format');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      const error = new Error('Project not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    project.thumbnailUrl = thumbnailUrl;
+    await project.save();
+    return project;
+  }
 }
 
 module.exports = new ProjectService();

@@ -22,6 +22,21 @@ export const authService = {
     return response.data?.user;
   },
 
+  async forgotPassword(email) {
+    const response = await api.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  async resetPassword({ token, newPassword }) {
+    const response = await api.post('/auth/reset-password', { token, newPassword });
+    return response.data;
+  },
+
+  async updateProfile(profileData) {
+    const response = await api.put('/auth/profile', profileData);
+    return response.data?.user;
+  },
+
   logout() {
     api.setToken(null);
   }

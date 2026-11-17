@@ -73,6 +73,25 @@ class ProjectController {
       next(error);
     }
   }
+
+  async duplicateProject(req, res, next) {
+    try {
+      const result = await projectService.duplicateProject(req.user, req.params.id);
+      return sendSuccess(res, 201, 'Project duplicated successfully', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateThumbnail(req, res, next) {
+    try {
+      const { thumbnailUrl } = req.body;
+      const project = await projectService.updateThumbnail(req.user, req.params.id, thumbnailUrl);
+      return sendSuccess(res, 200, 'Project thumbnail updated', { project });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new ProjectController();

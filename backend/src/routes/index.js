@@ -10,6 +10,10 @@ const revisionRoutes = require('./revisionRoutes');
 const commentRoutes = require('./commentRoutes');
 const organizationRoutes = require('./organizationRoutes');
 const analyticsRoutes = require('./analyticsRoutes');
+const sceneRoutes = require('./sceneRoutes');
+const catalogRoutes = require('./catalogRoutes');
+const stagingRoutes = require('./stagingRoutes');
+const renderRoutes = require('./renderRoutes');
 const { sendSuccess } = require('../utils/response');
 
 // Health check endpoint
@@ -31,5 +35,9 @@ router.use('/revisions', revisionRoutes);
 router.use('/comments', commentRoutes);
 router.use('/organizations', organizationRoutes);
 router.use('/analytics', analyticsRoutes);
+router.use('/scenes', sceneRoutes);
+router.use('/catalog', catalogRoutes);
+router.use('/staging', stagingRoutes);
+router.use('/render', renderRoutes);
 
 module.exports = router;

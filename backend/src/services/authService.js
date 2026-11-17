@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const User = require('../models/User');
 const { signToken } = require('../utils/token');
 const { ROLES } = require('../constants/roles');
@@ -85,6 +86,76 @@ class AuthService {
    */
   async getProfile(userId) {
     const user = await User.findById(userId);
+    if (!user) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      throw error;
+    }
+    return user.toJSON();
+  }
+
+  /**
+   * Request password reset token
+   */
+  async forgotPassword(email) {
+    const user = await User.findOne({ email });
+    if (!user) {
+      // Return ambiguous message for security
+      return { message: 'If an account exists with this email, a reset token has been generated.' };
+    }
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    user.resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await user.save();
+
+    return {
+      message: 'If an account exists with this email, a reset token has been generated.',
+      resetToken // Returned in development for straightforward testing and verification
+    };
+  }
+
+  /**
+   * Reset password using reset token
+   */
+  async resetPassword({ token, newPassword }) {
+    if (!token || !newPassword) {
+      const error = new Error('Reset token and new password are required');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: new Date() }
+    });
+
+    if (!user) {
+      const error = new Error('Password reset token is invalid or has expired');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    user.passwordHash = await User.hashPassword(newPassword);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    return { message: 'Password has been successfully reset. You may now sign in.' };
+  }
+
+  /**
+   * Update user profile
+   */
+  async updateProfile(userId, updateData) {
+    const allowed = ['name', 'organization', 'phone'];
+    const filtered = {};
+    for (const key of allowed) {
+      if (updateData[key] !== undefined) filtered[key] = updateData[key];
+    }
+
+    const user = await User.findByIdAndUpdate(userId, filtered, { new: true, runValidators: true });
     if (!user) {
       const error = new Error('User not found');
       error.statusCode = 404;

@@ -17,4 +17,16 @@ router.get('/me', authenticate, (req, res, next) =>
   authController.getCurrentUser(req, res, next)
 );
 
+router.post('/forgot-password', (req, res, next) =>
+  authController.forgotPassword(req, res, next)
+);
+
+router.post('/reset-password', (req, res, next) =>
+  authController.resetPassword(req, res, next)
+);
+
+router.put('/profile', authenticate, (req, res, next) =>
+  authController.updateProfile(req, res, next)
+);
+
 module.exports = router;

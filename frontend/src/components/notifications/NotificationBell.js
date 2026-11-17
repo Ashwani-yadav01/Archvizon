@@ -95,15 +95,15 @@ export default function NotificationBell() {
   const getIcon = (type) => {
     switch (type) {
       case 'PROJECT_ASSIGNED':
-        return <UserPlus className="w-4 h-4 text-emerald-400" />;
+        return <UserPlus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />;
       case 'CLARIFICATION_REQUESTED':
-        return <AlertCircle className="w-4 h-4 text-amber-400" />;
+        return <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
       case 'PROJECT_SUBMITTED':
-        return <FileText className="w-4 h-4 text-sky-400" />;
+        return <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />;
       case 'STATUS_CHANGED':
-        return <Info className="w-4 h-4 text-cyan-400" />;
+        return <Info className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />;
       default:
-        return <Bell className="w-4 h-4 text-slate-400" />;
+        return <Bell className="w-4 h-4 text-slate-500 dark:text-slate-400" />;
     }
   };
 
@@ -111,25 +111,25 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+        className="relative p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
         title="Notifications"
       >
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-sky-600 rounded-full border-2 border-slate-900">
+          <span className="absolute top-1 right-1 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-sky-600 rounded-full border-2 border-white dark:border-slate-900">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 bg-slate-900/80">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-white">Notifications</span>
+              <span className="text-sm font-semibold text-slate-900 dark:text-white">Notifications</span>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 text-[10px] font-medium bg-sky-950 text-sky-400 border border-sky-800 rounded-full">
+                <span className="px-2 py-0.5 text-[10px] font-medium bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-800 rounded-full">
                   {unreadCount} unread
                 </span>
               )}
@@ -138,7 +138,7 @@ export default function NotificationBell() {
               <button
                 onClick={handleMarkAllRead}
                 disabled={loading}
-                className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-sky-400 transition"
+                className="flex items-center gap-1 text-[11px] text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 Mark all read
@@ -147,9 +147,9 @@ export default function NotificationBell() {
           </div>
 
           {/* List */}
-          <div className="max-h-96 overflow-y-auto divide-y divide-slate-800/60">
+          <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
             {notifications.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400">
+              <div className="py-8 text-center text-xs text-slate-500 dark:text-slate-400">
                 No notifications right now
               </div>
             ) : (
@@ -157,27 +157,27 @@ export default function NotificationBell() {
                 <div
                   key={n._id}
                   onClick={() => handleNotificationClick(n)}
-                  className={`p-3.5 flex items-start gap-3 hover:bg-slate-800/60 cursor-pointer transition ${
-                    !n.readAt ? 'bg-slate-800/25' : ''
+                  className={`p-3.5 flex items-start gap-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition ${
+                    !n.readAt ? 'bg-sky-50/40 dark:bg-slate-800/25' : ''
                   }`}
                 >
-                  <div className="mt-0.5 p-1.5 rounded-lg bg-slate-800 border border-slate-700/60 shrink-0">
+                  <div className="mt-0.5 p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 shrink-0">
                     {getIcon(n.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`text-xs font-medium truncate ${!n.readAt ? 'text-white' : 'text-slate-300'}`}>
+                      <p className={`text-xs font-medium truncate ${!n.readAt ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-700 dark:text-slate-300'}`}>
                         {n.title}
                       </p>
                       <span className="text-[10px] text-slate-400 whitespace-nowrap">
                         {formatTimeAgo(n.createdAt)}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed">
                       {n.message}
                     </p>
                     {n.relatedProjectId && (
-                      <span className="inline-flex items-center gap-1 text-[10px] text-sky-400 mt-1.5 hover:underline">
+                      <span className="inline-flex items-center gap-1 text-[10px] text-sky-600 dark:text-sky-400 mt-1.5 hover:underline font-medium">
                         Open Project <ExternalLink className="w-2.5 h-2.5" />
                       </span>
                     )}

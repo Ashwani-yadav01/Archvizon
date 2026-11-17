@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 const config = require('./config/env');
 const routes = require('./routes');
 const errorHandler = require('./middleware/errorHandler');
@@ -10,7 +11,7 @@ const { sendError } = require('./utils/response');
 const app = express();
 
 // Security headers
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 
 // CORS configuration
 app.use(
@@ -30,6 +31,9 @@ if (config.env !== 'test') {
 // Request parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Static file serving for uploads, staged previews, and renders
+app.use('/uploads', express.static(config.uploadDir));
 
 // Versioned API routes
 app.use('/api/v1', routes);

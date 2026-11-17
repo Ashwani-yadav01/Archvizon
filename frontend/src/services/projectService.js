@@ -84,6 +84,16 @@ export const projectService = {
   async respondToClarification(projectId, data) {
     const res = await api.post(`/projects/${projectId}/clarification/respond`, data);
     return res.data;
+  },
+
+  async duplicateProject(projectId) {
+    const res = await api.post(`/projects/${projectId}/duplicate`);
+    return res.data;
+  },
+
+  async updateThumbnail(projectId, thumbnailUrl) {
+    const res = await api.patch(`/projects/${projectId}/thumbnail`, { thumbnailUrl });
+    return res.data;
   }
 };
 

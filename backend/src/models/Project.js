@@ -51,6 +51,15 @@ const projectSchema = new mongoose.Schema(
     deadline: {
       type: Date
     },
+    thumbnailUrl: {
+      type: String,
+      default: ''
+    },
+    activeSceneId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Scene',
+      default: null
+    },
     clarificationRequest: {
       message: { type: String, default: '' },
       requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

@@ -57,20 +57,20 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-[calc(100vh-8rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-lg w-full space-y-6 arch-card p-8 sm:p-10">
+      <div className="max-w-lg w-full space-y-6 arch-card p-8 sm:p-10 shadow-lg">
         <div className="text-center">
           <div className="w-12 h-12 rounded-xl bg-sky-600 flex items-center justify-center text-white mx-auto shadow-lg mb-4">
             <Layers className="w-6 h-6" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">Create Client Account</h2>
-          <p className="text-xs text-slate-400 mt-2">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Create Client Account</h2>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
             Submit architectural visualization briefs and track deliverables
           </p>
         </div>
 
         {error && (
-          <div className="p-3.5 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-start gap-2.5">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-lg bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs flex items-start gap-2.5">
+            <AlertCircle className="w-4 h-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
@@ -78,7 +78,7 @@ export default function RegisterPage() {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5" htmlFor="name">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="name">
                 Full Name *
               </label>
               <input
@@ -94,7 +94,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5" htmlFor="organization">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="organization">
                 Practice / Firm
               </label>
               <input
@@ -111,7 +111,7 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5" htmlFor="email">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="email">
                 Email Address *
               </label>
               <input
@@ -127,7 +127,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5" htmlFor="phone">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="phone">
                 Phone Number
               </label>
               <input
@@ -144,7 +144,7 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5" htmlFor="password">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="password">
                 Password * (min. 8 chars)
               </label>
               <input
@@ -160,7 +160,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5" htmlFor="confirmPassword">
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5" htmlFor="confirmPassword">
                 Confirm Password *
               </label>
               <input
@@ -195,9 +195,9 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <div className="pt-4 border-t border-slate-800/80 text-center text-xs text-slate-400">
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-800/80 text-center text-xs text-slate-600 dark:text-slate-400">
           Already registered?{' '}
-          <Link href="/login" className="text-sky-400 hover:text-sky-300 font-medium">
+          <Link href="/login" className="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 font-medium">
             Sign in
           </Link>
         </div>
