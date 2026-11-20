@@ -11,13 +11,14 @@ const notificationService = require('./notificationService');
 const { PROJECT_STATUSES, isValidTransition } = require('../constants/projectStatuses');
 const { ROLES } = require('../constants/roles');
 const storageService = require('./storageService');
+const { escapeRegex } = require('../utils/regex');
 
 class ProjectService {
   /**
    * Create a new project (default status: DRAFT)
    */
   async createProject(user, projectData) {
-    const { name, description, propertyType, location, deadline, services, metadata } = projectData;
+    const { name, description, propertyType, location, deadline, services, metadata, template } = projectData;
 
     const project = new Project({
       name,
@@ -33,21 +34,41 @@ class ProjectService {
 
     await project.save();
 
-    // If initial services were provided, persist them
+    // Prepare services to persist (supporting explicit services array or template-based defaults)
     const createdServices = [];
-    if (Array.isArray(services) && services.length > 0) {
-      for (const s of services) {
-        if (s.serviceType) {
-          const serviceDoc = new ServiceRequest({
-            projectId: project._id,
-            serviceType: s.serviceType,
-            requirements: s.requirements || {},
-            stylePreferences: s.stylePreferences || {},
-            outputSpecifications: s.outputSpecifications || {}
-          });
-          await serviceDoc.save();
-          createdServices.push(serviceDoc);
-        }
+    let servicesToCreate = Array.isArray(services) && services.length > 0 ? services : [];
+
+    if (servicesToCreate.length === 0) {
+      if (template === 'STAGING') {
+        servicesToCreate = [{
+          serviceType: 'VIRTUAL_STAGING',
+          requirements: { roomType: 'LIVING_ROOM' },
+          stylePreferences: { designStyle: 'MODERN' }
+        }];
+      } else if (template === 'WALKTHROUGH') {
+        servicesToCreate = [{
+          serviceType: 'VIRTUAL_WALKTHROUGH',
+          requirements: { expectedOutputType: 'INTERACTIVE_3D' }
+        }];
+      } else {
+        servicesToCreate = [{
+          serviceType: 'CGI_RENDERING',
+          requirements: { cameraViews: ['INTERIOR'] }
+        }];
+      }
+    }
+
+    for (const s of servicesToCreate) {
+      if (s.serviceType) {
+        const serviceDoc = new ServiceRequest({
+          projectId: project._id,
+          serviceType: s.serviceType,
+          requirements: s.requirements || {},
+          stylePreferences: s.stylePreferences || {},
+          outputSpecifications: s.outputSpecifications || {}
+        });
+        await serviceDoc.save();
+        createdServices.push(serviceDoc);
       }
     }
 
@@ -72,41 +93,44 @@ class ProjectService {
     const limit = Math.min(50, Math.max(1, parseInt(query.limit || '10', 10)));
     const skip = (page - 1) * limit;
 
-    const filter = {};
+    const conditions = [];
 
     // Role-based scoping
     if (user.role === ROLES.CLIENT) {
       if (user.organizationId) {
-        filter.$or = [{ clientId: user._id || user.id }, { organizationId: user.organizationId }];
+        conditions.push({ $or: [{ clientId: user._id || user.id }, { organizationId: user.organizationId }] });
       } else {
-        filter.clientId = user._id || user.id;
+        conditions.push({ clientId: user._id || user.id });
       }
     } else if (user.role === ROLES.VISUALIZATION_ARTIST) {
       const userAssignments = await Assignment.find({ assignedTo: user._id || user.id }).select('projectId');
       const assignedIds = userAssignments.map((a) => a.projectId);
-      filter._id = { $in: assignedIds };
+      conditions.push({ _id: { $in: assignedIds } });
     } else if (query.clientId && (user.role === ROLES.ADMIN || user.role === ROLES.PROJECT_MANAGER)) {
-      filter.clientId = query.clientId;
+      conditions.push({ clientId: query.clientId });
     }
 
     if (query.assignedTo && (user.role === ROLES.ADMIN || user.role === ROLES.PROJECT_MANAGER)) {
       const staffAssignments = await Assignment.find({ assignedTo: query.assignedTo }).select('projectId');
       const assignedIds = staffAssignments.map((a) => a.projectId);
-      filter._id = { $in: assignedIds };
+      conditions.push({ _id: { $in: assignedIds } });
     }
 
     if (query.status) {
-      filter.status = query.status;
+      conditions.push({ status: query.status });
     }
 
     if (query.propertyType) {
-      filter.propertyType = query.propertyType;
+      conditions.push({ propertyType: query.propertyType });
     }
 
-    if (query.search) {
-      const searchRegex = new RegExp(query.search.trim(), 'i');
-      filter.$or = [{ name: searchRegex }, { projectCode: searchRegex }];
+    if (query.search && query.search.trim()) {
+      const escaped = escapeRegex(query.search.trim());
+      const searchRegex = new RegExp(escaped, 'i');
+      conditions.push({ $or: [{ name: searchRegex }, { projectCode: searchRegex }] });
     }
+
+    const filter = conditions.length > 0 ? { $and: conditions } : {};
 
     const [projects, total] = await Promise.all([
       Project.find(filter)
@@ -665,6 +689,27 @@ class ProjectService {
       const error = new Error('Project not found');
       error.statusCode = 404;
       throw error;
+    }
+
+    // Access control: client owner, same org, assigned artist, or PM/Admin
+    const clientIdStr = (project.clientId?._id || project.clientId).toString();
+    const isOwner = clientIdStr === (user._id || user.id).toString();
+    const isSameOrg = user.organizationId && project.organizationId && project.organizationId.toString() === user.organizationId.toString();
+    const isStaff = [ROLES.PROJECT_MANAGER, ROLES.ADMIN].includes(user.role);
+
+    if (user.role === ROLES.CLIENT && !isOwner && !isSameOrg) {
+      const error = new Error('Access denied: You do not have permission to update this project thumbnail');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (user.role === ROLES.VISUALIZATION_ARTIST) {
+      const isAssigned = await Assignment.exists({ projectId: project._id, assignedTo: user._id || user.id });
+      if (!isAssigned) {
+        const error = new Error('Access denied: You are not assigned to this project');
+        error.statusCode = 403;
+        throw error;
+      }
     }
 
     project.thumbnailUrl = thumbnailUrl;

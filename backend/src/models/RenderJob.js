@@ -23,7 +23,7 @@ const renderJobSchema = new mongoose.Schema(
     settings: {
       resolution: {
         type: String,
-        enum: ['FHD', '4K', '8K'],
+        enum: ['FHD', '1080P', '4K', '8K'],
         default: '4K'
       },
       quality: {
@@ -33,7 +33,7 @@ const renderJobSchema = new mongoose.Schema(
       },
       cameraPreset: {
         type: String,
-        enum: ['PERSPECTIVE', 'ISOMETRIC', 'FRONT', 'TOP', 'WIDE_ANGLE'],
+        enum: ['PERSPECTIVE', 'ISOMETRIC', 'FRONT', 'TOP', 'WIDE', 'WIDE_ANGLE'],
         default: 'PERSPECTIVE'
       },
       cameraPosition: {
@@ -50,7 +50,7 @@ const renderJobSchema = new mongoose.Schema(
       },
       lightingScenario: {
         type: String,
-        enum: ['DAY', 'GOLDEN_HOUR', 'DRAMATIC_NIGHT', 'STUDIO'],
+        enum: ['DAY', 'GOLDEN_HOUR', 'TWILIGHT', 'DRAMATIC_NIGHT', 'STUDIO'],
         default: 'DAY'
       },
       sunIntensity: {

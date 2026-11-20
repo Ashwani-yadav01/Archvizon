@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 /**
  * BeforeAfterComparison
@@ -8,7 +9,9 @@ import React, { useState, useRef, useCallback } from 'react';
  */
 export default function BeforeAfterComparison({
   beforeImage,
+  beforeImageSrc,
   afterImage,
+  afterImageSrc,
   beforeLabel = 'Original Vacant Photo',
   afterLabel = 'Virtually Staged'
 }) {
@@ -36,21 +39,12 @@ export default function BeforeAfterComparison({
     }
   };
 
-  const handlePointerUp = (e) => {
+  const handlePointerUp = () => {
     setIsDragging(false);
   };
 
-  const serverUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1')
-    .replace(/\/api\/v1\/?$/, '')
-    .replace(/\/$/, '');
-  const getFullUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `${serverUrl}/${url.replace(/^\//, '')}`;
-  };
-
-  const beforeSrc = getFullUrl(beforeImage);
-  const afterSrc = getFullUrl(afterImage);
+  const beforeSrc = getAssetUrl(beforeImage || beforeImageSrc);
+  const afterSrc = getAssetUrl(afterImage || afterImageSrc);
 
   return (
     <div
@@ -61,51 +55,50 @@ export default function BeforeAfterComparison({
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
     >
-      {/* After image (Staged) - Base background */}
+      {/* Background (After / Staged Image) */}
       <img
         src={afterSrc}
         alt={afterLabel}
         className="absolute inset-0 w-full h-full object-cover"
-        loading="eager"
+        draggable={false}
       />
+      <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-lg border border-neutral-700 text-xs font-semibold text-emerald-400 z-10 flex items-center gap-1.5 shadow-lg">
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        {afterLabel}
+      </div>
 
-      {/* Before image (Vacant) - Clipped by slider position */}
+      {/* Foreground (Before / Vacant Original Image - clipped by slider) */}
       <div
-        className="absolute inset-0 overflow-hidden pointer-events-none"
-        style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
+        className="absolute inset-0 overflow-hidden"
+        style={{ width: `${sliderPosition}%` }}
       >
         <img
           src={beforeSrc}
           alt={beforeLabel}
           className="absolute inset-0 w-full h-full object-cover"
-          loading="eager"
+          style={{
+            width: containerRef.current ? `${containerRef.current.clientWidth}px` : '100%',
+            maxWidth: 'none'
+          }}
+          draggable={false}
         />
-      </div>
-
-      {/* Slider dividing bar */}
-      <div
-        className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_12px_rgba(0,0,0,0.8)] cursor-ew-resize flex items-center justify-center -ml-0.5"
-        style={{ left: `${sliderPosition}%` }}
-      >
-        <div className="w-8 h-8 rounded-full bg-white text-neutral-900 shadow-xl flex items-center justify-center font-bold text-xs">
-          ↔
+        <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-lg border border-neutral-700 text-xs font-semibold text-neutral-300 z-10 flex items-center gap-1.5 shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-neutral-400"></span>
+          {beforeLabel}
         </div>
       </div>
 
-      {/* Pill Labels */}
-      <div className="absolute top-4 left-4 z-10 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold text-neutral-200 border border-white/10 flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-amber-400"></span>
-        {beforeLabel}
-      </div>
-
-      <div className="absolute top-4 right-4 z-10 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full text-xs font-semibold text-neutral-200 border border-white/10 flex items-center gap-1.5">
-        <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-        {afterLabel}
-      </div>
-
-      {/* Drag instruction overlay */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-black/60 backdrop-blur-sm px-4 py-1 rounded-full text-[11px] text-neutral-300 pointer-events-none">
-        Drag slider left and right to inspect virtual staging changes
+      {/* Slider Divider Bar */}
+      <div
+        className="absolute top-0 bottom-0 w-1 bg-white cursor-ew-resize shadow-[0_0_10px_rgba(0,0,0,0.5)] z-20 pointer-events-none"
+        style={{ left: `${sliderPosition}%` }}
+      >
+        <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 bg-white rounded-full shadow-xl flex items-center justify-center border-2 border-neutral-900 pointer-events-auto cursor-grab active:cursor-grabbing">
+          <svg className="w-4 h-4 text-neutral-900" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            <polyline points="15 18 9 12 15 6"></polyline>
+            <polyline points="9 18 3 12 9 6" transform="translate(12,0) scale(-1,1)"></polyline>
+          </svg>
+        </div>
       </div>
     </div>
   );

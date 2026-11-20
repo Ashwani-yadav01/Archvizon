@@ -2,9 +2,12 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { SlidersHorizontal, Sparkles, Image as ImageIcon, RotateCcw } from 'lucide-react';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 export default function BeforeAfterComparison({
+  beforeImage,
   beforeImageSrc,
+  afterImage,
   afterImageSrc,
   beforeLabel = 'Original Raw Photograph',
   afterLabel = 'Virtually Staged Output'
@@ -12,6 +15,11 @@ export default function BeforeAfterComparison({
   const [sliderPosition, setSliderPosition] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef(null);
+
+  const rawBefore = beforeImageSrc || beforeImage;
+  const rawAfter = afterImageSrc || afterImage;
+  const normalizedBefore = getAssetUrl(rawBefore);
+  const normalizedAfter = getAssetUrl(rawAfter);
 
   const handleMove = useCallback(
     (clientX) => {
@@ -75,7 +83,7 @@ export default function BeforeAfterComparison({
         {/* Layer 1: After Image (Virtually Staged - Full Width Background) */}
         <div className="absolute inset-0 w-full h-full">
           <img
-            src={afterImageSrc}
+            src={normalizedAfter}
             alt={afterLabel}
             className="w-full h-full object-cover"
             draggable={false}
@@ -92,7 +100,7 @@ export default function BeforeAfterComparison({
           style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
         >
           <img
-            src={beforeImageSrc}
+            src={normalizedBefore}
             alt={beforeLabel}
             className="w-full h-full object-cover"
             draggable={false}

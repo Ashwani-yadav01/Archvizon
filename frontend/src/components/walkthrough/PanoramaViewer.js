@@ -14,6 +14,7 @@ import {
   Sparkles,
   AlertCircle
 } from 'lucide-react';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 export default function PanoramaViewer({
   panoramaSrc,
@@ -71,7 +72,7 @@ export default function PanoramaViewer({
     textureLoader.crossOrigin = 'anonymous';
 
     textureLoader.load(
-      panoramaSrc,
+      getAssetUrl(panoramaSrc),
       (texture) => {
         texture.colorSpace = THREE.SRGBColorSpace;
         const material = new THREE.MeshBasicMaterial({ map: texture });

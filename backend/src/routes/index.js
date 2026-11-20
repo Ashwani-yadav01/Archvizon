@@ -39,5 +39,6 @@ router.use('/scenes', sceneRoutes);
 router.use('/catalog', catalogRoutes);
 router.use('/staging', stagingRoutes);
 router.use('/render', renderRoutes);
+router.use('/renders', renderRoutes);
 
 module.exports = router;

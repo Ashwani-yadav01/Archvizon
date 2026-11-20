@@ -119,14 +119,17 @@ export default function WalkthroughMode({ projectId, onExit }) {
       mesh.castShadow = true;
       mesh.receiveShadow = true;
 
-      if (obj.transform?.position) {
-        mesh.position.set(obj.transform.position.x || 0, obj.transform.position.y || 0, obj.transform.position.z || 0);
+      const pos = obj.position || obj.transform?.position;
+      if (pos) {
+        mesh.position.set(pos.x || 0, pos.y || 0, pos.z || 0);
       }
-      if (obj.transform?.rotation) {
-        mesh.rotation.set(obj.transform.rotation.x || 0, obj.transform.rotation.y || 0, obj.transform.rotation.z || 0);
+      const rot = obj.rotation || obj.transform?.rotation;
+      if (rot) {
+        mesh.rotation.set(rot.x || 0, rot.y || 0, rot.z || 0);
       }
-      if (obj.transform?.scale) {
-        mesh.scale.set(obj.transform.scale.x || 1, obj.transform.scale.y || 1, obj.transform.scale.z || 1);
+      const scl = obj.scale || obj.transform?.scale;
+      if (scl) {
+        mesh.scale.set(scl.x ?? 1, scl.y ?? 1, scl.z ?? 1);
       }
 
       return mesh;

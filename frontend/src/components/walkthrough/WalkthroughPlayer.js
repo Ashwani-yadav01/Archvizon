@@ -15,6 +15,7 @@ import {
   Sparkles,
   Gauge
 } from 'lucide-react';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 export default function WalkthroughPlayer({
   videoSrc,
@@ -207,7 +208,7 @@ export default function WalkthroughPlayer({
         >
           <video
             ref={videoRef}
-            src={videoSrc}
+            src={getAssetUrl(videoSrc)}
             playsInline
             className="w-full h-full object-contain"
           />

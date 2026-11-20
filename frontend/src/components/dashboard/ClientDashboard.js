@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import StatusBadge from '../common/StatusBadge';
 import projectService from '../../services/projectService';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 export default function ClientDashboard({ user }) {
   const router = useRouter();
@@ -362,7 +363,7 @@ export default function ClientDashboard({ user }) {
                 >
                   {project.thumbnailUrl ? (
                     <img
-                      src={project.thumbnailUrl}
+                      src={getAssetUrl(project.thumbnailUrl)}
                       alt={project.name}
                       className="w-full h-full object-cover"
                     />

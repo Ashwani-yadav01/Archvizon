@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import stagingService from '../../services/stagingService';
 import BeforeAfterComparison from './BeforeAfterComparison';
+import { getAssetUrl } from '../../utils/assetUrl';
 
 const ROOM_CATEGORIES = [
   { id: 'LIVING_ROOM', name: 'Living Room', icon: '🛋️' },
@@ -154,15 +155,7 @@ export default function VirtualStagingStudio({ projectId }) {
   };
 
   const displayedJob = activeJob?.status === 'COMPLETED' ? activeJob : selectedHistoryJob;
-
-  const serverUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1')
-    .replace(/\/api\/v1\/?$/, '')
-    .replace(/\/$/, '');
-  const getFullUrl = (url) => {
-    if (!url) return '';
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `${serverUrl}/${url.replace(/^\//, '')}`;
-  };
+  const getFullUrl = (url) => getAssetUrl(url);
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-16">

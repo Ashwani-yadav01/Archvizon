@@ -62,6 +62,12 @@ export default function ProjectDetailsPage() {
   const [uploadFile, setUploadFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
+  // Add Service Request state
+  const [isAddServiceOpen, setIsAddServiceOpen] = useState(false);
+  const [newServiceType, setNewServiceType] = useState('CGI_RENDERING');
+  const [newServiceNotes, setNewServiceNotes] = useState('');
+  const [addingService, setAddingService] = useState(false);
+
   const fetchProjectDetails = async () => {
     try {
       setLoading(true);
@@ -104,9 +110,49 @@ export default function ProjectDetailsPage() {
       await fetchProjectDetails();
     } catch (err) {
       console.error('Failed to submit brief:', err);
-      setError(err.message || 'Failed to submit project brief');
+      setError(err?.message || 'Failed to submit project brief');
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleAddService = async (e) => {
+    e.preventDefault();
+    try {
+      setAddingService(true);
+      setError('');
+      let payload = { serviceType: newServiceType };
+      if (newServiceType === 'CGI_RENDERING') {
+        payload.requirements = {
+          viewTypes: ['INTERIOR_LIVING', 'INTERIOR_BEDROOM'],
+          dayNight: 'DAY',
+          notes: newServiceNotes.trim()
+        };
+        payload.outputSpecifications = { resolution: '4K' };
+      } else if (newServiceType === 'VIRTUAL_STAGING') {
+        payload.requirements = {
+          furnitureStyle: 'MODERN',
+          roomTypes: ['Living Room'],
+          colorPalette: 'Warm Neutral',
+          notes: newServiceNotes.trim()
+        };
+      } else if (newServiceType === 'VIRTUAL_WALKTHROUGH') {
+        payload.requirements = {
+          walkthroughType: 'INTERACTIVE_3D',
+          notes: newServiceNotes.trim()
+        };
+      }
+
+      await projectService.addServiceRequest(projectId, payload);
+      setSuccessMsg('Service request successfully added to project brief!');
+      setIsAddServiceOpen(false);
+      setNewServiceNotes('');
+      await fetchProjectDetails();
+    } catch (err) {
+      console.error('Failed to add service:', err);
+      setError(err?.message || 'Failed to add visualization service');
+    } finally {
+      setAddingService(false);
     }
   };
 
@@ -574,13 +620,35 @@ export default function ProjectDetailsPage() {
 
           {/* Service Requests List */}
           <div className="space-y-4">
-            <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">
-              Requested Visualization Services ({serviceRequests.length})
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-semibold text-white uppercase tracking-wider font-mono">
+                Requested Visualization Services ({serviceRequests.length})
+              </h3>
+              {(project.status === 'DRAFT' || project.status === 'AWAITING_INFORMATION' || isStaff) && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddServiceOpen(true)}
+                  className="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-medium flex items-center gap-1.5 transition shadow"
+                >
+                  <span>+</span> Add Visualization Service
+                </button>
+              )}
+            </div>
 
             {serviceRequests.length === 0 ? (
-              <div className="arch-card p-8 text-center text-slate-500 text-xs">
-                No visualization services added to this project yet.
+              <div className="arch-card p-8 text-center space-y-3">
+                <p className="text-slate-400 text-xs">
+                  No visualization services have been attached to this project brief yet.
+                </p>
+                {(project.status === 'DRAFT' || isStaff) && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAddServiceOpen(true)}
+                    className="arch-button-primary text-xs mx-auto flex items-center gap-1.5"
+                  >
+                    <span>+</span> Add Visualization Service Now
+                  </button>
+                )}
               </div>
             ) : (
               serviceRequests.map((srv) => (
@@ -836,6 +904,71 @@ export default function ProjectDetailsPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Add Visualization Service Modal */}
+      {isAddServiceOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="arch-card w-full max-w-lg p-6 space-y-5 border border-slate-700 shadow-2xl relative">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="text-base font-semibold text-white">Add Visualization Service</h3>
+              <button
+                type="button"
+                onClick={() => setIsAddServiceOpen(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddService} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Select Service Category
+                </label>
+                <select
+                  value={newServiceType}
+                  onChange={(e) => setNewServiceType(e.target.value)}
+                  className="arch-input text-xs"
+                >
+                  <option value="CGI_RENDERING">Architectural CGI Rendering (Photorealistic 3D Views)</option>
+                  <option value="VIRTUAL_STAGING">Manual Virtual Staging (Furnished Room Transformation)</option>
+                  <option value="VIRTUAL_WALKTHROUGH">Virtual Walkthrough (3D Scene & 360° Panorama Tour)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                  Specific Requirements / Creative Brief Notes (Optional)
+                </label>
+                <textarea
+                  rows={4}
+                  value={newServiceNotes}
+                  onChange={(e) => setNewServiceNotes(e.target.value)}
+                  placeholder="e.g. Desired daytime sun angle, neutral Scandinavian palette, high-detail woodwork..."
+                  className="arch-input text-xs"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsAddServiceOpen(false)}
+                  className="arch-button-secondary text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addingService}
+                  className="arch-button-primary text-xs"
+                >
+                  {addingService ? 'Adding Service...' : 'Add Service to Brief'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

@@ -28,8 +28,20 @@ export default function NewProjectPage() {
   const [locationCity, setLocationCity] = useState('');
   const [locationCountry, setLocationCountry] = useState('');
   const [description, setDescription] = useState('');
+  const [selectedServices, setSelectedServices] = useState({
+    CGI_RENDERING: true,
+    VIRTUAL_STAGING: false,
+    VIRTUAL_WALKTHROUGH: false
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Auto-sync services with template
+  React.useEffect(() => {
+    if (template === 'STAGING') {
+      setSelectedServices((prev) => ({ ...prev, VIRTUAL_STAGING: true }));
+    }
+  }, [template]);
 
   const starterTemplates = [
     {
@@ -73,6 +85,37 @@ export default function NewProjectPage() {
       setLoading(true);
       setError('');
 
+      const services = [];
+      if (selectedServices.CGI_RENDERING) {
+        services.push({
+          serviceType: 'CGI_RENDERING',
+          requirements: { cameraViews: ['INTERIOR'] },
+          outputSpecifications: { resolution: '4K' }
+        });
+      }
+      if (selectedServices.VIRTUAL_STAGING) {
+        services.push({
+          serviceType: 'VIRTUAL_STAGING',
+          requirements: { roomType: 'LIVING_ROOM' },
+          stylePreferences: { designStyle: 'MODERN' }
+        });
+      }
+      if (selectedServices.VIRTUAL_WALKTHROUGH) {
+        services.push({
+          serviceType: 'VIRTUAL_WALKTHROUGH',
+          requirements: { expectedOutputType: 'INTERACTIVE_3D' }
+        });
+      }
+
+      // Ensure at least one visualization service is requested
+      if (services.length === 0) {
+        services.push({
+          serviceType: 'CGI_RENDERING',
+          requirements: { cameraViews: ['INTERIOR'] },
+          outputSpecifications: { resolution: '4K' }
+        });
+      }
+
       const payload = {
         name: name.trim(),
         description: description.trim() || `Architectural ${starterTemplates.find((t) => t.id === template)?.title} project.`,
@@ -81,7 +124,8 @@ export default function NewProjectPage() {
           city: locationCity.trim(),
           country: locationCountry.trim()
         },
-        template
+        template,
+        services
       };
 
       const data = await projectService.createProject(payload);
@@ -257,6 +301,87 @@ export default function NewProjectPage() {
                 className="arch-input text-xs"
               />
             </div>
+          </div>
+        </div>
+
+        {/* Step 3: Visualization Services */}
+        <div className="arch-card p-6 space-y-4">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 font-mono pb-2 border-b border-slate-200 dark:border-slate-800">
+            3. Requested Visualization Services
+          </label>
+          <p className="text-xs text-slate-500">
+            Select one or more professional visualization services required for this project.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <label
+              className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition ${
+                selectedServices.CGI_RENDERING
+                  ? 'bg-sky-50/50 dark:bg-sky-950/30 border-sky-500 text-sky-900 dark:text-sky-200'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selectedServices.CGI_RENDERING}
+                onChange={(e) =>
+                  setSelectedServices((prev) => ({ ...prev, CGI_RENDERING: e.target.checked }))
+                }
+                className="mt-1 accent-sky-600 rounded"
+              />
+              <div className="space-y-1">
+                <span className="text-xs font-semibold block">Architectural CGI</span>
+                <span className="text-[11px] text-slate-500 block leading-tight">
+                  Photorealistic 3D interior & exterior renderings
+                </span>
+              </div>
+            </label>
+
+            <label
+              className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition ${
+                selectedServices.VIRTUAL_STAGING
+                  ? 'bg-amber-50/50 dark:bg-amber-950/30 border-amber-500 text-amber-900 dark:text-amber-200'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selectedServices.VIRTUAL_STAGING}
+                onChange={(e) =>
+                  setSelectedServices((prev) => ({ ...prev, VIRTUAL_STAGING: e.target.checked }))
+                }
+                className="mt-1 accent-amber-600 rounded"
+              />
+              <div className="space-y-1">
+                <span className="text-xs font-semibold block">Virtual Staging</span>
+                <span className="text-[11px] text-slate-500 block leading-tight">
+                  Furnished & styled versions of raw room photographs
+                </span>
+              </div>
+            </label>
+
+            <label
+              className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition ${
+                selectedServices.VIRTUAL_WALKTHROUGH
+                  ? 'bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-500 text-emerald-900 dark:text-emerald-200'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={selectedServices.VIRTUAL_WALKTHROUGH}
+                onChange={(e) =>
+                  setSelectedServices((prev) => ({ ...prev, VIRTUAL_WALKTHROUGH: e.target.checked }))
+                }
+                className="mt-1 accent-emerald-600 rounded"
+              />
+              <div className="space-y-1">
+                <span className="text-xs font-semibold block">Virtual Walkthrough</span>
+                <span className="text-[11px] text-slate-500 block leading-tight">
+                  Interactive 3D tours, 360° panoramas & walkthrough videos
+                </span>
+              </div>
+            </label>
           </div>
         </div>
 

@@ -30,6 +30,16 @@ class UserController {
       next(error);
     }
   }
+
+  async updateUserStatus(req, res, next) {
+    try {
+      const { status } = req.body;
+      const user = await userService.updateUserStatus(req.params.id, status);
+      return sendSuccess(res, 200, 'User status updated successfully', { user });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 module.exports = new UserController();

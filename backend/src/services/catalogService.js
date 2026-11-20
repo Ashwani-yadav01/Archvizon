@@ -1,4 +1,5 @@
 const ArchitecturalAsset = require('../models/ArchitecturalAsset');
+const { escapeRegex } = require('../utils/regex');
 
 const DEFAULT_PRESET_ASSETS = [
   // ARCHITECTURAL
@@ -155,15 +156,19 @@ class CatalogService {
    * Seed catalog presets if database is empty
    */
   async seedCatalogIfEmpty() {
-    const count = await ArchitecturalAsset.countDocuments({ isPreset: true });
-    if (count === 0) {
-      for (const item of DEFAULT_PRESET_ASSETS) {
-        await ArchitecturalAsset.create({
-          ...item,
-          isPreset: true
-        });
+    try {
+      const count = await ArchitecturalAsset.countDocuments({ isPreset: true });
+      if (count === 0) {
+        for (const item of DEFAULT_PRESET_ASSETS) {
+          await ArchitecturalAsset.create({
+            ...item,
+            isPreset: true
+          });
+        }
+        console.log(`[Catalog] Seeded ${DEFAULT_PRESET_ASSETS.length} architectural assets`);
       }
-      console.log(`[Catalog] Seeded ${DEFAULT_PRESET_ASSETS.length} architectural assets`);
+    } catch (err) {
+      console.warn('[Catalog] Could not verify/seed presets:', err.message);
     }
   }
 
@@ -180,10 +185,12 @@ class CatalogService {
     if (query.subCategory) {
       filter.subCategory = query.subCategory.toUpperCase();
     }
-    if (query.search) {
+    if (query.search && query.search.trim()) {
+      const escaped = escapeRegex(query.search.trim());
+      const regex = new RegExp(escaped, 'i');
       filter.$or = [
-        { name: { $regex: query.search, $options: 'i' } },
-        { tags: { $in: [new RegExp(query.search, 'i')] } }
+        { name: regex },
+        { tags: regex }
       ];
     }
 
