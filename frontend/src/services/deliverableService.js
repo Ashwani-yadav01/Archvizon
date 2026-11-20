@@ -33,12 +33,12 @@ export const deliverableService = {
   },
 
   getDeliverableDownloadUrl(deliverableId) {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
     return `${baseUrl}/deliverables/${deliverableId}/download`;
   },
 
   getDeliverablePreviewUrl(deliverableId) {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1').replace(/\/$/, '');
     const token = typeof window !== 'undefined' ? localStorage.getItem('archvizon_token') : null;
     return `${baseUrl}/deliverables/${deliverableId}/preview${token ? `?token=${encodeURIComponent(token)}` : ''}`;
   },

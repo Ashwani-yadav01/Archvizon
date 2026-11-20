@@ -12,6 +12,13 @@ class StorageService {
     if (!fs.existsSync(this.uploadDir)) {
       fs.mkdirSync(this.uploadDir, { recursive: true });
     }
+    const subdirs = ['projects', 'staging', 'renders'];
+    for (const sub of subdirs) {
+      const subPath = path.join(this.uploadDir, sub);
+      if (!fs.existsSync(subPath)) {
+        fs.mkdirSync(subPath, { recursive: true });
+      }
+    }
   }
 
   ensureDirectory(dirPath) {

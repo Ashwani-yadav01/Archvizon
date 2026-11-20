@@ -1,4 +1,8 @@
+'use client';
+
+import React from 'react';
 import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
 import {
   Box,
   Sparkles,
@@ -15,6 +19,7 @@ import {
 } from 'lucide-react';
 
 export default function Home() {
+  const { isAuthenticated } = useAuth();
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
@@ -38,16 +43,36 @@ export default function Home() {
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              href="/dashboard"
-              className="arch-button-primary text-base !py-3.5 !px-8 shadow-xl shadow-sky-600/30 flex items-center gap-2"
-            >
-              <span>Launch 3D Workspace</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </Link>
-            <Link href="/register" className="arch-button-secondary text-base !py-3.5 !px-8">
-              Create Free Account
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="arch-button-primary text-base !py-3.5 !px-8 shadow-xl shadow-sky-600/30 flex items-center gap-2"
+                >
+                  <span>Open Workspace Dashboard</span>
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+                <Link
+                  href="/projects/new"
+                  className="arch-button-secondary text-base !py-3.5 !px-8 flex items-center gap-2"
+                >
+                  <span>New 3D Project</span>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="arch-button-primary text-base !py-3.5 !px-8 shadow-xl shadow-sky-600/30 flex items-center gap-2"
+                >
+                  <span>Launch 3D Workspace</span>
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Link>
+                <Link href="/register" className="arch-button-secondary text-base !py-3.5 !px-8">
+                  Create Free Account
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Quick Metrics */}

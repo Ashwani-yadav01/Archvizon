@@ -20,7 +20,7 @@ const stagingJobSchema = new mongoose.Schema(
     },
     roomType: {
       type: String,
-      enum: ['LIVING_ROOM', 'BEDROOM', 'KITCHEN', 'DINING_ROOM', 'HOME_OFFICE', 'TERRACE', 'OTHER'],
+      enum: ['LIVING_ROOM', 'BEDROOM', 'KITCHEN', 'DINING_ROOM', 'OFFICE', 'HOME_OFFICE', 'TERRACE', 'OTHER'],
       default: 'LIVING_ROOM'
     },
     designStyle: {
@@ -32,7 +32,8 @@ const stagingJobSchema = new mongoose.Schema(
         'SCANDINAVIAN',
         'INDUSTRIAL',
         'TRADITIONAL',
-        'LUXURY'
+        'LUXURY',
+        'JAPANDI'
       ],
       default: 'MODERN'
     },

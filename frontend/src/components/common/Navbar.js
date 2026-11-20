@@ -9,14 +9,14 @@ import NotificationBell from '../notifications/NotificationBell';
 import { Layers, LogOut, User as UserIcon, LayoutDashboard } from 'lucide-react';
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
 
   return (
     <nav className="border-b border-slate-200 bg-white/90 dark:border-slate-800 dark:bg-slate-950/80 backdrop-blur-md sticky top-0 z-50 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded-lg bg-sky-600 flex items-center justify-center text-white shadow-md group-hover:bg-sky-500 transition-colors">
               <Layers className="w-5 h-5" />
             </div>
@@ -32,7 +32,9 @@ export default function Navbar() {
           <div className="flex items-center gap-3 sm:gap-4">
             <ThemeToggle />
 
-            {isAuthenticated ? (
+            {isLoading ? (
+              <div className="w-24 h-8 rounded-lg bg-slate-100 dark:bg-slate-800/60 animate-pulse" />
+            ) : isAuthenticated ? (
               <div className="flex items-center gap-3 sm:gap-4">
                 <Link
                   href="/dashboard"

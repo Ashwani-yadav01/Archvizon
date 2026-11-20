@@ -25,18 +25,20 @@ export default function BeforeAfterComparison({
     []
   );
 
-  const handleMouseDown = () => setIsDragging(true);
-  const handleMouseUp = () => setIsDragging(false);
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
+  const handlePointerDown = (e) => {
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
     handleMove(e.clientX);
   };
 
-  const handleTouchMove = (e) => {
-    if (e.touches && e.touches[0]) {
-      handleMove(e.touches[0].clientX);
+  const handlePointerMove = (e) => {
+    if (isDragging) {
+      handleMove(e.clientX);
     }
+  };
+
+  const handlePointerUp = () => {
+    setIsDragging(false);
   };
 
   const resetToCenter = () => setSliderPosition(50);
@@ -64,10 +66,11 @@ export default function BeforeAfterComparison({
       {/* Comparison Viewport */}
       <div
         ref={containerRef}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onTouchMove={handleTouchMove}
-        className="relative w-full h-[460px] bg-slate-950 rounded-2xl overflow-hidden select-none cursor-ew-resize border border-slate-800 shadow-2xl"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
+        className="relative w-full h-[460px] bg-slate-950 rounded-2xl overflow-hidden select-none cursor-ew-resize border border-slate-800 shadow-2xl touch-none"
       >
         {/* Layer 1: After Image (Virtually Staged - Full Width Background) */}
         <div className="absolute inset-0 w-full h-full">
@@ -83,35 +86,27 @@ export default function BeforeAfterComparison({
           </div>
         </div>
 
-        {/* Layer 2: Before Image (Original Raw Photo - Clipped by Slider Position) */}
+        {/* Layer 2: Before Image (Original Raw Photo - Clipped via clipPath) */}
         <div
-          className="absolute inset-0 h-full overflow-hidden"
-          style={{ width: `${sliderPosition}%` }}
+          className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none"
+          style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
         >
-          <div
-            className="relative h-full"
-            style={{
-              width: containerRef.current ? `${containerRef.current.offsetWidth}px` : '100%'
-            }}
-          >
-            <img
-              src={beforeImageSrc}
-              alt={beforeLabel}
-              className="w-full h-full object-cover"
-              draggable={false}
-            />
-            <div className="absolute bottom-4 left-4 z-10 px-3 py-1 rounded-full bg-black/80 backdrop-blur-sm border border-slate-700 text-slate-300 font-mono text-[11px] font-semibold flex items-center gap-1.5 shadow-lg">
-              <ImageIcon className="w-3.5 h-3.5 text-sky-400" />
-              <span>{beforeLabel}</span>
-            </div>
+          <img
+            src={beforeImageSrc}
+            alt={beforeLabel}
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+          <div className="absolute bottom-4 left-4 z-10 px-3 py-1 rounded-full bg-black/80 backdrop-blur-sm border border-slate-700 text-slate-300 font-mono text-[11px] font-semibold flex items-center gap-1.5 shadow-lg">
+            <ImageIcon className="w-3.5 h-3.5 text-sky-400" />
+            <span>{beforeLabel}</span>
           </div>
         </div>
 
         {/* Vertical Divider Line with Grab Handle */}
         <div
-          className="absolute top-0 bottom-0 z-20 w-0.5 bg-white shadow-[0_0_12px_rgba(255,255,255,0.7)]"
+          className="absolute top-0 bottom-0 z-20 w-0.5 bg-white shadow-[0_0_12px_rgba(255,255,255,0.7)] pointer-events-none"
           style={{ left: `${sliderPosition}%` }}
-          onMouseDown={handleMouseDown}
         >
           <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center shadow-xl border-2 border-slate-900 cursor-grab active:cursor-grabbing hover:scale-110 transition-transform">
             <SlidersHorizontal className="w-4 h-4 rotate-90" />

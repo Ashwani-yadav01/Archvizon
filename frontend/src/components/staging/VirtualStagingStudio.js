@@ -155,11 +155,13 @@ export default function VirtualStagingStudio({ projectId }) {
 
   const displayedJob = activeJob?.status === 'COMPLETED' ? activeJob : selectedHistoryJob;
 
-  const serverUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:5000';
+  const serverUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1')
+    .replace(/\/api\/v1\/?$/, '')
+    .replace(/\/$/, '');
   const getFullUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `${serverUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    return `${serverUrl}/${url.replace(/^\//, '')}`;
   };
 
   return (

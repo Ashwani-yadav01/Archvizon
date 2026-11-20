@@ -86,8 +86,12 @@ export default function NewProjectPage() {
 
       const data = await projectService.createProject(payload);
       if (data?.project?._id) {
-        // Direct route to 3D Editor immediately for best Blender-like interactive UX
-        router.push(`/projects/${data.project._id}/editor`);
+        if (template === 'STAGING') {
+          router.push(`/projects/${data.project._id}?tab=STAGING`);
+        } else {
+          // Direct route to 3D Editor immediately for best Blender-like interactive UX
+          router.push(`/projects/${data.project._id}/editor`);
+        }
       } else {
         router.push('/dashboard');
       }

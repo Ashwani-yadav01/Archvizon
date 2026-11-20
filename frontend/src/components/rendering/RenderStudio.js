@@ -123,11 +123,13 @@ export default function RenderStudio({ projectId }) {
 
   const displayedRender = activeJob?.status === 'COMPLETED' ? activeJob : selectedRender;
 
-  const serverUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:5000';
+  const serverUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1')
+    .replace(/\/api\/v1\/?$/, '')
+    .replace(/\/$/, '');
   const getFullUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `${serverUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    return `${serverUrl}/${url.replace(/^\//, '')}`;
   };
 
   return (

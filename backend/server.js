@@ -29,4 +29,13 @@ const handleShutdown = async (signal) => {
 process.on('SIGINT', () => handleShutdown('SIGINT'));
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[Archvizon API] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[Archvizon API] Uncaught Exception:', err);
+  handleShutdown('uncaughtException');
+});
+
 startServer();

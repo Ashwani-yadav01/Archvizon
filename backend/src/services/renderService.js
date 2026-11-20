@@ -6,6 +6,13 @@ const Scene = require('../models/Scene');
 const Project = require('../models/Project');
 const { ROLES } = require('../constants/roles');
 
+const RENDER_PRESET_CATALOG = {
+  DAY: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=80',
+  GOLDEN_HOUR: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=1200&q=80',
+  TWILIGHT: 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1200&q=80',
+  STUDIO: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=80'
+};
+
 class RenderService {
   /**
    * Helper to verify project ownership or staff access
@@ -122,6 +129,21 @@ class RenderService {
           const buffer = Buffer.from(matches[2], 'base64');
           fs.writeFileSync(resultFilePath, buffer);
           imageWritten = true;
+        }
+      }
+
+      if (!imageWritten) {
+        const scenario = job.settings?.lightingScenario || 'DAY';
+        const catalogUrl = RENDER_PRESET_CATALOG[scenario] || RENDER_PRESET_CATALOG.DAY;
+        try {
+          const imgResponse = await fetch(catalogUrl, { signal: AbortSignal.timeout(12000) });
+          if (imgResponse.ok) {
+            const arrayBuffer = await imgResponse.arrayBuffer();
+            fs.writeFileSync(resultFilePath, Buffer.from(arrayBuffer));
+            imageWritten = true;
+          }
+        } catch (fetchErr) {
+          console.warn(`[RenderJob] Could not fetch catalog render image (${fetchErr.message}), writing fallback buffer...`);
         }
       }
 

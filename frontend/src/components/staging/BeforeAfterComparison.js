@@ -24,26 +24,29 @@ export default function BeforeAfterComparison({
     setSliderPosition(percentage);
   }, []);
 
-  const handleTouchMove = (e) => {
-    if (e.touches && e.touches[0]) {
-      handleMove(e.touches[0].clientX);
-    }
+  const handlePointerDown = (e) => {
+    setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    handleMove(e.clientX);
   };
 
-  const handleMouseMove = (e) => {
+  const handlePointerMove = (e) => {
     if (isDragging) {
       handleMove(e.clientX);
     }
   };
 
-  const handleMouseDown = () => setIsDragging(true);
-  const handleMouseUp = () => setIsDragging(false);
+  const handlePointerUp = (e) => {
+    setIsDragging(false);
+  };
 
-  const serverUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'http://localhost:5000';
+  const serverUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1')
+    .replace(/\/api\/v1\/?$/, '')
+    .replace(/\/$/, '');
   const getFullUrl = (url) => {
     if (!url) return '';
     if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return `${serverUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    return `${serverUrl}/${url.replace(/^\//, '')}`;
   };
 
   const beforeSrc = getFullUrl(beforeImage);
@@ -52,30 +55,30 @@ export default function BeforeAfterComparison({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[450px] md:h-[540px] rounded-xl overflow-hidden select-none cursor-ew-resize bg-neutral-900 border border-neutral-800 shadow-2xl"
-      onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
-      onTouchMove={handleTouchMove}
+      className="relative w-full h-[450px] md:h-[540px] rounded-xl overflow-hidden select-none cursor-ew-resize bg-neutral-900 border border-neutral-800 shadow-2xl touch-none"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
     >
       {/* After image (Staged) - Base background */}
       <img
         src={afterSrc}
         alt={afterLabel}
         className="absolute inset-0 w-full h-full object-cover"
+        loading="eager"
       />
 
       {/* Before image (Vacant) - Clipped by slider position */}
       <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ width: `${sliderPosition}%` }}
+        className="absolute inset-0 overflow-hidden pointer-events-none"
+        style={{ clipPath: `inset(0 ${100 - sliderPosition}% 0 0)` }}
       >
         <img
           src={beforeSrc}
           alt={beforeLabel}
-          className="absolute inset-0 w-full h-full object-cover max-w-none"
-          style={{ width: containerRef.current ? `${containerRef.current.clientWidth}px` : '100%' }}
+          className="absolute inset-0 w-full h-full object-cover"
+          loading="eager"
         />
       </div>
 
