@@ -21,6 +21,16 @@ export const organizationService = {
     return res.data?.organization;
   },
 
+  async provisionMember(orgId, memberData) {
+    const res = await api.post(`/organizations/${orgId}/members/provision`, memberData);
+    return res.data;
+  },
+
+  async updateMemberRole(orgId, userId, role) {
+    const res = await api.patch(`/organizations/${orgId}/members/${userId}/role`, { role });
+    return res.data?.organization;
+  },
+
   async removeMember(orgId, userId) {
     const res = await api.delete(`/organizations/${orgId}/members/${userId}`);
     return res.data?.organization;

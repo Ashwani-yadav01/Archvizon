@@ -1,9 +1,74 @@
 const crypto = require('crypto');
 const User = require('../models/User');
+const Organization = require('../models/Organization');
 const { signToken } = require('../utils/token');
 const { ROLES } = require('../constants/roles');
 
 class AuthService {
+  /**
+   * Register a new Firm and its primary owner account atomically.
+   */
+  async registerFirm({ firmName, organizationType, name, email, password, phone, city, country }) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+      const error = new Error('An account with this email address already exists');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    const passwordHash = await User.hashPassword(password);
+
+    // 1. Create the Owner user account with CLIENT role, FIRM accountType & firm name
+    const user = new User({
+      name: name.trim(),
+      email: normalizedEmail,
+      passwordHash,
+      organization: firmName.trim(),
+      phone: phone || '',
+      role: ROLES.CLIENT,
+      accountType: 'FIRM',
+      accountStatus: 'ACTIVE'
+    });
+    await user.save();
+
+    // 2. Create the Organization document
+    const organization = new Organization({
+      name: firmName.trim(),
+      organizationType: organizationType || 'ARCHITECTURAL_FIRM',
+      contactEmail: normalizedEmail,
+      phone: phone || '',
+      address: {
+        city: city || '',
+        country: country || ''
+      },
+      ownerId: user._id,
+      memberIds: [user._id],
+      settings: {
+        defaultDeadlineDays: 14,
+        notifyAllMembers: true
+      }
+    });
+    await organization.save();
+
+    // 3. Link organizationId back to user
+    user.organizationId = organization._id;
+    await user.save();
+
+    const token = signToken({
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      accountType: user.accountType || 'FIRM'
+    });
+
+    return {
+      user: user.toJSON(),
+      organization: organization.toObject(),
+      token
+    };
+  }
+
   /**
    * Register a new user.
    * By default, public self-registration creates a CLIENT account.
@@ -27,13 +92,15 @@ class AuthService {
       organization: organization || '',
       phone: phone || '',
       role: assignedRole,
+      accountType: 'CLIENT',
       accountStatus: 'ACTIVE'
     });
 
     const token = signToken({
       userId: user._id.toString(),
       email: user.email,
-      role: user.role
+      role: user.role,
+      accountType: user.accountType || 'CLIENT'
     });
 
     return {
@@ -67,12 +134,17 @@ class AuthService {
     }
 
     user.lastLoginAt = new Date();
+    // Ensure accountType is populated for existing accounts with organization
+    if (!user.accountType) {
+      user.accountType = user.organizationId ? 'FIRM' : 'CLIENT';
+    }
     await user.save();
 
     const token = signToken({
       userId: user._id.toString(),
       email: user.email,
-      role: user.role
+      role: user.role,
+      accountType: user.accountType || 'CLIENT'
     });
 
     return {
@@ -91,7 +163,11 @@ class AuthService {
       error.statusCode = 404;
       throw error;
     }
-    return user.toJSON();
+    const userObj = user.toJSON();
+    if (!userObj.accountType) {
+      userObj.accountType = userObj.organizationId ? 'FIRM' : 'CLIENT';
+    }
+    return userObj;
   }
 
   /**

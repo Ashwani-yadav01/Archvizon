@@ -9,6 +9,14 @@ export const authService = {
     return response.data;
   },
 
+  async registerFirm(firmData) {
+    const response = await api.post('/auth/register-firm', firmData);
+    if (response.data && response.data.token) {
+      api.setToken(response.data.token);
+    }
+    return response.data;
+  },
+
   async login(credentials) {
     const response = await api.post('/auth/login', credentials);
     if (response.data && response.data.token) {

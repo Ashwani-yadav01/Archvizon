@@ -30,6 +30,11 @@ const userSchema = new mongoose.Schema(
       default: ROLES.CLIENT,
       required: true
     },
+    accountType: {
+      type: String,
+      enum: ['CLIENT', 'FIRM'],
+      default: 'CLIENT'
+    },
     organization: {
       type: String,
       trim: true,

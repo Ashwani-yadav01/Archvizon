@@ -335,8 +335,14 @@ export default function ProjectDetailsPage() {
               </p>
             </div>
             <div>
-              <p className="text-[10px] uppercase font-mono text-slate-500">Client</p>
-              <p className="text-slate-200 font-medium mt-0.5">{project.clientId?.name || 'You'}</p>
+              <p className="text-[10px] uppercase font-mono text-slate-500">
+                {project.organizationId || project.clientId?.organization ? 'Firm / Client' : 'Client'}
+              </p>
+              <p className="text-slate-200 font-medium mt-0.5">
+                {project.clientId?.organization
+                  ? `${project.clientId.name} (${project.clientId.organization})`
+                  : (project.clientId?.name || 'You')}
+              </p>
             </div>
           </div>
 

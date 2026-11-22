@@ -29,7 +29,7 @@ describe('Archvizon Phase 1 — Foundation Tests', () => {
 
   describe('JWT Token Utilities', () => {
     it('should sign and verify valid JWT token', () => {
-      const payload = { userId: '507f1f77bcf86cd799439011', email: 'test@archvizon.com', role: ROLES.CLIENT };
+      const payload = { userId: '507f1f77bcf86cd799439011', email: 'test@archvizon.com', role: ROLES.CLIENT, accountType: 'FIRM' };
       const token = signToken(payload, '1h');
       expect(token).toBeDefined();
 
@@ -38,6 +38,7 @@ describe('Archvizon Phase 1 — Foundation Tests', () => {
       expect(decoded.userId).toBe(payload.userId);
       expect(decoded.email).toBe(payload.email);
       expect(decoded.role).toBe(ROLES.CLIENT);
+      expect(decoded.accountType).toBe('FIRM');
     });
 
     it('should return null when verifying invalid token', () => {
@@ -121,12 +122,13 @@ describe('Archvizon Phase 1 — Foundation Tests', () => {
       expect(hash.length).toBeGreaterThan(20);
     });
 
-    it('User toJSON should never include passwordHash', () => {
+    it('User toJSON should never include passwordHash and include accountType', () => {
       const userDoc = new User({
         name: 'John Doe',
         email: 'john@example.com',
         passwordHash: '$2a$10$hashedstringhere',
-        role: ROLES.CLIENT
+        role: ROLES.CLIENT,
+        accountType: 'CLIENT'
       });
 
       const json = userDoc.toJSON();
@@ -134,6 +136,19 @@ describe('Archvizon Phase 1 — Foundation Tests', () => {
       expect(json.name).toBe('John Doe');
       expect(json.email).toBe('john@example.com');
       expect(json.role).toBe(ROLES.CLIENT);
+      expect(json.accountType).toBe('CLIENT');
+
+      const firmDoc = new User({
+        name: 'Jane Architect',
+        email: 'jane@apexstudio.com',
+        passwordHash: '$2a$10$hashedstringhere',
+        role: ROLES.CLIENT,
+        accountType: 'FIRM',
+        organization: 'Apex Studio'
+      });
+      const firmJson = firmDoc.toJSON();
+      expect(firmJson.accountType).toBe('FIRM');
+      expect(firmJson.organization).toBe('Apex Studio');
     });
 
     it('Project model should auto-generate projectCode prefix AV-', async () => {
@@ -175,6 +190,39 @@ describe('Archvizon Phase 1 — Foundation Tests', () => {
       expect(res.status).toBe(400);
       expect(res.body.success).toBe(false);
       expect(res.body.errors.some((e) => e.field === 'email')).toBe(true);
+    });
+
+    it('POST /api/v1/auth/register-firm should validate required fields', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register-firm')
+        .send({
+          email: 'invalid-email',
+          password: '123'
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toBe('Validation failed');
+      expect(res.body.errors.some((e) => e.field === 'firmName')).toBe(true);
+      expect(res.body.errors.some((e) => e.field === 'name')).toBe(true);
+      expect(res.body.errors.some((e) => e.field === 'email')).toBe(true);
+      expect(res.body.errors.some((e) => e.field === 'password')).toBe(true);
+    });
+
+    it('POST /api/v1/auth/register-firm should reject invalid organizationType', async () => {
+      const res = await request(app)
+        .post('/api/v1/auth/register-firm')
+        .send({
+          firmName: 'Skyline Architecture',
+          name: 'Jane Doe',
+          email: 'jane@skyline.com',
+          password: 'Password123!',
+          organizationType: 'NON_EXISTENT_TYPE'
+        });
+
+      expect(res.status).toBe(400);
+      expect(res.body.success).toBe(false);
+      expect(res.body.errors.some((e) => e.field === 'organizationType')).toBe(true);
     });
   });
 });

@@ -42,7 +42,7 @@ class OrganizationService {
     await organization.save();
 
     // Link user to organization
-    await User.findByIdAndUpdate(userId, { organizationId: organization._id, organization: organization.name });
+    await User.findByIdAndUpdate(userId, { organizationId: organization._id, organization: organization.name, accountType: 'FIRM' });
 
     return organization.populate([
       { path: 'ownerId', select: 'name email role' },
@@ -183,6 +183,7 @@ class OrganizationService {
 
     targetUser.organizationId = organization._id;
     targetUser.organization = organization.name;
+    targetUser.accountType = 'FIRM';
     await targetUser.save();
 
     // Send in-app notification to the newly added member
@@ -245,6 +246,188 @@ class OrganizationService {
     return organization.populate([
       { path: 'ownerId', select: 'name email role' },
       { path: 'memberIds', select: 'name email role organization' }
+    ]);
+  }
+
+  /**
+   * Provision a team member with direct credentials and an assigned role
+   * (Option 1: Direct Provisioning for VISUALIZATION_ARTIST, PROJECT_MANAGER, CLIENT)
+   */
+  async provisionMember(user, orgId, { name, email, password, role }) {
+    if (!mongoose.Types.ObjectId.isValid(orgId)) {
+      const error = new Error('Invalid organization ID format');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!name || name.trim().length < 2) {
+      const error = new Error('Member name must be at least 2 characters');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      const error = new Error('A valid email address is required');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!password || password.length < 8) {
+      const error = new Error('Temporary password must be at least 8 characters long');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const allowedRoles = [ROLES.VISUALIZATION_ARTIST, ROLES.PROJECT_MANAGER, ROLES.CLIENT];
+    const assignedRole = role && allowedRoles.includes(role) ? role : ROLES.VISUALIZATION_ARTIST;
+
+    const organization = await Organization.findById(orgId);
+    if (!organization) {
+      const error = new Error('Organization not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const userId = (user._id || user.id).toString();
+    const isOwner = organization.ownerId.toString() === userId;
+    const isAdmin = user.role === ROLES.ADMIN;
+
+    if (!isOwner && !isAdmin) {
+      const error = new Error('Access denied: Only the organization owner can provision team members');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      const alreadyInOrg = organization.memberIds.some((m) => m.toString() === existingUser._id.toString());
+      if (alreadyInOrg) {
+        const error = new Error(`User with email "${normalizedEmail}" is already a member of this firm.`);
+        error.statusCode = 400;
+        throw error;
+      }
+
+      existingUser.organizationId = organization._id;
+      existingUser.organization = organization.name;
+      existingUser.accountType = 'FIRM';
+      existingUser.role = assignedRole;
+      await existingUser.save();
+
+      organization.memberIds.push(existingUser._id);
+      await organization.save();
+
+      await notificationService.createNotification({
+        recipientId: existingUser._id,
+        type: 'ORGANIZATION_INVITE',
+        title: `Added to ${organization.name}`,
+        message: `You have been added to ${organization.name} as a ${assignedRole.replace(/_/g, ' ')}.`,
+        relatedProjectId: null
+      });
+
+      const updated = await Organization.findById(orgId).populate([
+        { path: 'ownerId', select: 'name email role' },
+        { path: 'memberIds', select: 'name email role organization createdAt' }
+      ]);
+
+      return {
+        organization: updated,
+        member: {
+          id: existingUser._id,
+          name: existingUser.name,
+          email: existingUser.email,
+          role: existingUser.role
+        }
+      };
+    }
+
+    // Hash password and create brand new member
+    const passwordHash = await User.hashPassword(password);
+    const newMember = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      passwordHash,
+      role: assignedRole,
+      organizationId: organization._id,
+      organization: organization.name,
+      accountType: 'FIRM',
+      accountStatus: 'ACTIVE'
+    });
+
+    organization.memberIds.push(newMember._id);
+    await organization.save();
+
+    await notificationService.createNotification({
+      recipientId: newMember._id,
+      type: 'ORGANIZATION_INVITE',
+      title: `Welcome to ${organization.name}`,
+      message: `You have been added to ${organization.name} as a ${assignedRole.replace(/_/g, ' ')}. You can now access your studio dashboard.`,
+      relatedProjectId: null
+    });
+
+    const updated = await Organization.findById(orgId).populate([
+      { path: 'ownerId', select: 'name email role' },
+      { path: 'memberIds', select: 'name email role organization createdAt' }
+    ]);
+
+    return {
+      organization: updated,
+      member: {
+        id: newMember._id,
+        name: newMember.name,
+        email: newMember.email,
+        role: newMember.role
+      }
+    };
+  }
+
+  /**
+   * Update the organizational role of a team member (Artist <-> PM <-> Client)
+   */
+  async updateMemberRole(user, orgId, memberUserId, newRole) {
+    if (!mongoose.Types.ObjectId.isValid(orgId) || !mongoose.Types.ObjectId.isValid(memberUserId)) {
+      const error = new Error('Invalid ID format');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const organization = await Organization.findById(orgId);
+    if (!organization) {
+      const error = new Error('Organization not found');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const userId = (user._id || user.id).toString();
+    const isOwner = organization.ownerId.toString() === userId;
+    const isAdmin = user.role === ROLES.ADMIN;
+
+    if (!isOwner && !isAdmin) {
+      const error = new Error('Access denied: Only the organization owner can change member roles');
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const allowedRoles = [ROLES.VISUALIZATION_ARTIST, ROLES.PROJECT_MANAGER, ROLES.CLIENT];
+    if (!allowedRoles.includes(newRole)) {
+      const error = new Error('Invalid role specified');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const targetUserIdStr = memberUserId.toString();
+    const isMember = organization.memberIds.some((m) => m.toString() === targetUserIdStr);
+    if (!isMember) {
+      const error = new Error('User is not a member of this organization');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    await User.findByIdAndUpdate(memberUserId, { role: newRole });
+
+    return Organization.findById(orgId).populate([
+      { path: 'ownerId', select: 'name email role' },
+      { path: 'memberIds', select: 'name email role organization createdAt' }
     ]);
   }
 }

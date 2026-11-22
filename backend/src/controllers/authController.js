@@ -19,6 +19,26 @@ class AuthController {
     }
   }
 
+  async registerFirm(req, res, next) {
+    try {
+      const { firmName, organizationType, name, email, password, phone, city, country } = req.body;
+      const result = await authService.registerFirm({
+        firmName,
+        organizationType,
+        name,
+        email,
+        password,
+        phone,
+        city,
+        country
+      });
+
+      return sendSuccess(res, 201, 'Firm and administrative owner registered successfully', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async login(req, res, next) {
     try {
       const { email, password } = req.body;

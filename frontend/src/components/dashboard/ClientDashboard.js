@@ -22,14 +22,18 @@ import {
   MoreVertical,
   CheckCircle2,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  Building2
 } from 'lucide-react';
 import StatusBadge from '../common/StatusBadge';
 import projectService from '../../services/projectService';
+import OrganizationWorkspace from '../organization/OrganizationWorkspace';
 import { getAssetUrl } from '../../utils/assetUrl';
 
 export default function ClientDashboard({ user }) {
   const router = useRouter();
+  const isFirm = user?.accountType === 'FIRM' || !!user?.organizationId;
+  const [activeTab, setActiveTab] = useState(isFirm ? 'FIRM' : 'PROJECTS');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -132,9 +136,21 @@ export default function ClientDashboard({ user }) {
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Architectural Project Workspace</h1>
+          <div className="flex items-center gap-2.5 mb-1 flex-wrap">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+              {isFirm
+                ? (user?.organization ? `${user.organization} Workspace` : 'Firm Studio Workspace')
+                : 'Architectural Project Workspace'}
+            </h1>
+            <StatusBadge
+              status={isFirm ? 'FIRM' : user?.role}
+              label={isFirm ? 'Firm / Studio' : undefined}
+            />
+          </div>
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-            Welcome back, {user?.name}. Model 3D environments, perform virtual staging, and generate architectural renders.
+            {isFirm
+              ? `Welcome back, ${user?.name}. Manage your firm workspace, provision team members, and collaborate on 3D architectural projects.`
+              : `Welcome back, ${user?.name}. Model 3D environments, perform virtual staging, and generate architectural renders.`}
           </p>
         </div>
 
@@ -170,8 +186,75 @@ export default function ClientDashboard({ user }) {
         </div>
       )}
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Primary Section Tabs */}
+      <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 text-xs overflow-x-auto pb-1">
+        {isFirm ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setActiveTab('FIRM')}
+              className={`pb-2.5 px-3.5 font-semibold transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                activeTab === 'FIRM'
+                  ? 'border-sky-600 text-sky-600 dark:border-sky-400 dark:text-sky-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              <Building2 className="w-4 h-4" />
+              <span>Firm Workspace & Team</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('PROJECTS')}
+              className={`pb-2.5 px-3.5 font-semibold transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                activeTab === 'PROJECTS'
+                  ? 'border-sky-600 text-sky-600 dark:border-sky-400 dark:text-sky-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              <FolderKanban className="w-4 h-4" />
+              <span>3D Projects ({projects.length})</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => setActiveTab('PROJECTS')}
+              className={`pb-2.5 px-3.5 font-semibold transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                activeTab === 'PROJECTS'
+                  ? 'border-sky-600 text-sky-600 dark:border-sky-400 dark:text-sky-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              <FolderKanban className="w-4 h-4" />
+              <span>3D Projects ({projects.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('FIRM')}
+              className={`pb-2.5 px-3.5 font-semibold transition-all border-b-2 flex items-center gap-2 whitespace-nowrap ${
+                activeTab === 'FIRM'
+                  ? 'border-sky-600 text-sky-600 dark:border-sky-400 dark:text-sky-400'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'
+              }`}
+            >
+              <Building2 className="w-4 h-4" />
+              <span>Firm Workspace & Team</span>
+            </button>
+          </>
+        )}
+      </div>
+
+      {activeTab === 'FIRM' && (
+        <OrganizationWorkspace currentUser={user} />
+      )}
+
+      {activeTab === 'PROJECTS' && (
+        <>
+          {/* Metrics Row */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="arch-card p-5">
           <div className="flex justify-between items-start">
             <div>
@@ -450,6 +533,8 @@ export default function ClientDashboard({ user }) {
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
 
       {/* Rename Modal */}

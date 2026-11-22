@@ -46,6 +46,35 @@ class OrganizationController {
     }
   }
 
+  async provisionMember(req, res, next) {
+    try {
+      const { name, email, password, role } = req.body;
+      const result = await organizationService.provisionMember(
+        req.user,
+        req.params.id,
+        { name, email, password, role }
+      );
+      return sendSuccess(res, 201, 'Team member provisioned successfully', result);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateMemberRole(req, res, next) {
+    try {
+      const { role } = req.body;
+      const organization = await organizationService.updateMemberRole(
+        req.user,
+        req.params.id,
+        req.params.userId,
+        role
+      );
+      return sendSuccess(res, 200, 'Team member role updated successfully', { organization });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async removeMember(req, res, next) {
     try {
       const organization = await organizationService.removeMember(

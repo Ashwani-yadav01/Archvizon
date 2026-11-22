@@ -18,7 +18,8 @@ const notificationSchema = new mongoose.Schema(
         'DELIVERABLE_UPLOADED',
         'REVISION_REQUESTED',
         'REVISION_RESPONDED',
-        'DELIVERABLE_APPROVED'
+        'DELIVERABLE_APPROVED',
+        'ORGANIZATION_INVITE'
       ],
       required: true
     },

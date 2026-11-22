@@ -150,6 +150,75 @@ describe('Phase 7 & Phase 8 Tests — Analytics and Organizations', () => {
       expect(mockOrg.memberIds).not.toContain(mockMemberId);
       expect(User.findByIdAndUpdate).toHaveBeenCalledWith(mockMemberId, { organizationId: null });
     });
+
+    it('should provision a brand new team member with direct credentials and assigned role (Option 1)', async () => {
+      const newMemberId = new mongoose.Types.ObjectId();
+      const mockOrg = {
+        _id: mockOrgId,
+        name: 'Vertex Studios',
+        ownerId: mockOwnerId,
+        memberIds: [mockOwnerId],
+        save: jest.fn().mockResolvedValue(true)
+      };
+
+      Organization.findById.mockReturnValue({
+        populate: jest.fn().mockResolvedValue({
+          _id: mockOrgId,
+          name: 'Vertex Studios',
+          memberIds: [mockOwnerId, newMemberId]
+        }),
+        ...mockOrg
+      });
+      User.findOne.mockResolvedValue(null);
+      User.hashPassword = jest.fn().mockResolvedValue('mock_hash_123');
+      User.create.mockResolvedValue({
+        _id: newMemberId,
+        name: 'Aria Artist',
+        email: 'aria@vertex.com',
+        role: ROLES.VISUALIZATION_ARTIST,
+        organizationId: mockOrgId,
+        organization: 'Vertex Studios'
+      });
+
+      const result = await organizationService.provisionMember(ownerUser, mockOrgId, {
+        name: 'Aria Artist',
+        email: 'aria@vertex.com',
+        password: 'Password123!',
+        role: ROLES.VISUALIZATION_ARTIST
+      });
+
+      expect(result.member.email).toBe('aria@vertex.com');
+      expect(result.member.role).toBe(ROLES.VISUALIZATION_ARTIST);
+      expect(User.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Aria Artist',
+          email: 'aria@vertex.com',
+          role: ROLES.VISUALIZATION_ARTIST,
+          organizationId: mockOrgId
+        })
+      );
+    });
+
+    it('should update a team member role within the organization', async () => {
+      const mockOrg = {
+        _id: mockOrgId,
+        ownerId: mockOwnerId,
+        memberIds: [mockOwnerId, mockMemberId]
+      };
+
+      Organization.findById.mockReturnValue({
+        populate: jest.fn().mockResolvedValue({
+          _id: mockOrgId,
+          memberIds: [mockOwnerId, mockMemberId]
+        }),
+        ...mockOrg
+      });
+      User.findByIdAndUpdate.mockResolvedValue(true);
+
+      await organizationService.updateMemberRole(ownerUser, mockOrgId, mockMemberId, ROLES.PROJECT_MANAGER);
+
+      expect(User.findByIdAndUpdate).toHaveBeenCalledWith(mockMemberId, { role: ROLES.PROJECT_MANAGER });
+    });
   });
 
   describe('Phase 7 — Analytics & Production Reporting', () => {

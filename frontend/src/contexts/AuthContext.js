@@ -63,6 +63,18 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const registerFirm = useCallback(async (formData) => {
+    setIsLoading(true);
+    try {
+      const data = await authService.registerFirm(formData);
+      setUser(data.user);
+      setTokenState(data.token);
+      return data.user;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(() => {
     authService.logout();
     setUser(null);
@@ -76,10 +88,13 @@ export function AuthProvider({ children }) {
         user,
         token,
         role: user?.role || null,
+        accountType: user?.accountType || (user?.organizationId ? 'FIRM' : 'CLIENT'),
+        isFirm: user?.accountType === 'FIRM' || !!user?.organizationId,
         isAuthenticated: !!user,
         isLoading,
         login,
         register,
+        registerFirm,
         logout
       }}
     >

@@ -53,8 +53,18 @@ export default function Navbar() {
                     {user?.name ? user.name[0].toUpperCase() : 'U'}
                   </div>
                   <div className="hidden sm:block text-left">
-                    <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{user?.name}</p>
-                    <StatusBadge status={user?.role} />
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-xs font-medium text-slate-800 dark:text-slate-200">{user?.name}</p>
+                      {user?.organization && (
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                          &bull; {user.organization}
+                        </span>
+                      )}
+                    </div>
+                    <StatusBadge
+                      status={user?.accountType === 'FIRM' || (user?.organizationId && user?.role === 'CLIENT') ? 'FIRM' : user?.role}
+                      label={user?.accountType === 'FIRM' || (user?.organizationId && user?.role === 'CLIENT') ? 'Firm / Studio' : undefined}
+                    />
                   </div>
                 </div>
 

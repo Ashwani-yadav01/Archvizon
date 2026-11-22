@@ -105,8 +105,18 @@ class ProjectService {
     } else if (user.role === ROLES.VISUALIZATION_ARTIST) {
       const userAssignments = await Assignment.find({ assignedTo: user._id || user.id }).select('projectId');
       const assignedIds = userAssignments.map((a) => a.projectId);
-      conditions.push({ _id: { $in: assignedIds } });
-    } else if (query.clientId && (user.role === ROLES.ADMIN || user.role === ROLES.PROJECT_MANAGER)) {
+      if (user.organizationId) {
+        conditions.push({ $or: [{ _id: { $in: assignedIds } }, { organizationId: user.organizationId }] });
+      } else {
+        conditions.push({ _id: { $in: assignedIds } });
+      }
+    } else if (user.role === ROLES.PROJECT_MANAGER) {
+      if (user.organizationId) {
+        conditions.push({ organizationId: user.organizationId });
+      } else if (query.clientId) {
+        conditions.push({ clientId: query.clientId });
+      }
+    } else if (query.clientId && user.role === ROLES.ADMIN) {
       conditions.push({ clientId: query.clientId });
     }
 
@@ -195,11 +205,17 @@ class ProjectService {
 
     if (user.role === ROLES.VISUALIZATION_ARTIST) {
       const isAssigned = await Assignment.exists({ projectId: project._id, assignedTo: user._id || user.id });
-      if (!isAssigned) {
+      if (!isAssigned && !isSameOrg) {
         const error = new Error('Access denied: You are not assigned to this project');
         error.statusCode = 403;
         throw error;
       }
+    }
+
+    if (user.role === ROLES.PROJECT_MANAGER && user.organizationId && project.organizationId && !isSameOrg) {
+      const error = new Error('Access denied: Project belongs to another organization');
+      error.statusCode = 403;
+      throw error;
     }
 
     const deliverableFilter = { projectId: project._id };
@@ -705,11 +721,17 @@ class ProjectService {
 
     if (user.role === ROLES.VISUALIZATION_ARTIST) {
       const isAssigned = await Assignment.exists({ projectId: project._id, assignedTo: user._id || user.id });
-      if (!isAssigned) {
+      if (!isAssigned && !isSameOrg) {
         const error = new Error('Access denied: You are not assigned to this project');
         error.statusCode = 403;
         throw error;
       }
+    }
+
+    if (user.role === ROLES.PROJECT_MANAGER && user.organizationId && project.organizationId && !isSameOrg) {
+      const error = new Error('Access denied: Project belongs to another organization');
+      error.statusCode = 403;
+      throw error;
     }
 
     project.thumbnailUrl = thumbnailUrl;
